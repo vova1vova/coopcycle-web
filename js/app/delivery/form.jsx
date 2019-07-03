@@ -3,8 +3,11 @@ import AddressAutosuggest from '../components/AddressAutosuggest'
 import React from 'react'
 import { render } from 'react-dom'
 import _ from 'lodash'
+import axios from 'axios'
+import moment from 'moment'
 
-var map
+let map
+let jwt
 
 let markers = {
   pickup: null,
@@ -108,6 +111,70 @@ function refreshAddressForm(type, address) {
   document.querySelector(`#delivery_${type}_address_addressLocality`).disabled = disabled
   document.querySelector(`#delivery_${type}_address_name`).disabled = disabled
   document.querySelector(`#delivery_${type}_address_telephone`).disabled = disabled
+
+}
+
+const baseURL = location.protocol + '//' + location.hostname
+
+function onFormChanged() {
+
+  const storeId = $('#delivery_store').val()
+
+  const payload = {
+    store: `/api/stores/${storeId}`,
+    pickup: {
+      address: {
+        streetAddress: $('#delivery_pickup_address_streetAddress').val(),
+        latLng: [
+          $('#delivery_pickup_address_latitude').val(),
+          $('#delivery_pickup_address_longitude').val(),
+        ]
+      },
+      before: moment($('#delivery_pickup_doneBefore').val(), 'YYYY-MM-DD HH:mm:ss').format()
+    },
+    dropoff: {
+      address: {
+        streetAddress: $('#delivery_dropoff_address_streetAddress').val(),
+        latLng: [
+          $('#delivery_dropoff_address_latitude').val(),
+          $('#delivery_dropoff_address_longitude').val(),
+        ]
+      },
+      before: moment($('#delivery_dropoff_doneBefore').val(), 'YYYY-MM-DD HH:mm:ss').format()
+    }
+  }
+
+  if (storeId
+    && payload.pickup.address.streetAddress.length > 0
+    && payload.dropoff.address.streetAddress.length > 0) {
+
+    const $container = $('#delivery_price').closest('.delivery-price')
+
+    $container.removeClass('delivery-price--error')
+    $container.addClass('delivery-price--loading')
+    $('#delivery_price_error').text('')
+
+    axios({
+      method: 'post',
+      url: baseURL + '/api/pricing/deliveries',
+      data: payload,
+      headers: {
+        Authorization: `Bearer ${jwt}`
+      }
+    })
+      .then(response => {
+        $('#delivery_price').text((response.data / 100).formatMoney(2, window.AppData.currencySymbol))
+      })
+      .catch(e => {
+        if (e.response && e.response.status === 400) {
+          if (e.response.data.hasOwnProperty('@type') && e.response.data['@type'] === 'hydra:Error') {
+            $container.addClass('delivery-price--error')
+            $('#delivery_price_error').text(e.response.data['hydra:description'])
+          }
+        }
+      })
+      .finally(() => $container.removeClass('delivery-price--loading'))
+  }
 }
 
 window.initMap = function() {
@@ -152,6 +219,7 @@ window.initMap = function() {
         $('#delivery_pickup_panel_title').text(address.streetAddress)
         markAddressChecked('pickup')
         onLocationChange(address.geo, 'pickup')
+        onFormChanged()
       }} />,
     pickupAddressWidget
   )
@@ -178,6 +246,7 @@ window.initMap = function() {
         $('#delivery_dropoff_panel_title').text(address.streetAddress)
         markAddressChecked('dropoff')
         onLocationChange(address.geo, 'dropoff')
+        onFormChanged()
       } } />,
     dropoffAddressWidget
   )
@@ -186,8 +255,18 @@ window.initMap = function() {
     defaultValue: document.querySelector('#delivery_dropoff_doneBefore').value,
     onChange: function(date) {
       document.querySelector('#delivery_dropoff_doneBefore').value = date.format('YYYY-MM-DD HH:mm:ss')
+      onFormChanged()
     }
   })
+
+  //
+
+  $('#delivery_store').on('change', onFormChanged)
 }
+
+$.getJSON(window.Routing.generate('profile_jwt'))
+  .then(tok => {
+    jwt = tok
+  })
 
 map = MapHelper.init('map')

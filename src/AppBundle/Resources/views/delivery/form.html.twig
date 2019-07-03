@@ -60,6 +60,13 @@
       {{ form_row(form.dropoff) }}
     </div>
     <div class="col-sm-6">
+
+      <div class="delivery-price">
+        <span>{% trans %}form.delivery.price.label{% endtrans %}</span>
+        <span id="delivery_price">{{ 0|price_format }}</span>
+        <span id="delivery_price_error" class="delivery-price-error"></span>
+      </div>
+
       <div class="embed-responsive embed-responsive-16by9">
         <div class="embed-responsive-item" id="map"></div>
       </div>
