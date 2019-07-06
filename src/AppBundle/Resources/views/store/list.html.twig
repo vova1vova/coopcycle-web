@@ -16,6 +16,20 @@
             <a href="{{ path('admin_deliveries_pricing_ruleset', { id: store.pricingRuleSet.id }) }}">
               {{ store.pricingRuleSet.name }}
             </a>
+            {% if store.prefillPickupAddress or store.createOrders %}
+            <ul class="list-unstyled nomargin">
+              {% if store.prefillPickupAddress %}
+                <li>
+                  <small class="text-muted">{{ 'form.store_type.prefill_pickup_address.label'|trans }}</small>
+                </li>
+              {% endif %}
+              {% if store.createOrders %}
+                <li>
+                  <small class="text-muted">{{ 'form.store_type.create_orders.label'|trans }}</small>
+                </li>
+              {% endif %}
+            </ul>
+            {% endif %}
           {% endif %}
         </td>
         <td class="text-right">

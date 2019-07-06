@@ -116,9 +116,61 @@ function refreshAddressForm(type, address) {
 
 const baseURL = location.protocol + '//' + location.hostname
 
+// @see https://gist.github.com/anvk/5602ec398e4fdc521e2bf9940fd90f84
+function asyncFunc(item) {
+  return new Promise((resolve, reject) => {
+
+      $(item.element).find('.fa-spinner').removeClass('hidden')
+
+      axios({
+        method: 'post',
+        url: `${baseURL}${item.pricingRule}/evaluate`,
+        data: item.payload,
+        headers: {
+          Authorization: `Bearer ${jwt}`
+        }
+      })
+        .then(response => {
+          $(item.element).find('.fa-spinner').addClass('hidden')
+          if (response.data.result === true) {
+            $(item.element).addClass('list-group-item-success')
+          } else {
+            $(item.element).addClass('list-group-item-danger')
+          }
+          resolve(response.data)
+        })
+  })
+}
+
+function workMyCollection(arr) {
+  return arr.reduce((promise, item) => {
+    return promise
+      .then((result) => {
+        console.log(`result`, result)
+        console.log(`item`, item)
+        return asyncFunc(item).then(data => {
+          // console.log('result', result)
+          if (data.result === true) {
+            console.log('STOP HERE')
+            // Promise.reject('YOP')
+          }
+          return data
+        });
+      })
+      .catch(console.error)
+  }, Promise.resolve())
+}
+
 function onFormChanged() {
 
-  const storeId = $('#delivery_store').val()
+  const deliveryFormDataElement = document.querySelector('#delivery-form-data')
+
+  let storeId
+  if (deliveryFormDataElement.dataset.store) {
+    storeId = deliveryFormDataElement.dataset.store
+  } else {
+    storeId = $('#delivery_store').val()
+  }
 
   const payload = {
     store: `/api/stores/${storeId}`,
@@ -144,15 +196,62 @@ function onFormChanged() {
     }
   }
 
-  if (storeId
-    && payload.pickup.address.streetAddress.length > 0
-    && payload.dropoff.address.streetAddress.length > 0) {
+  if (storeId &&
+    payload.pickup.address.streetAddress.length > 0 &&
+    payload.dropoff.address.streetAddress.length > 0) {
 
     const $container = $('#delivery_price').closest('.delivery-price')
 
     $container.removeClass('delivery-price--error')
     $container.addClass('delivery-price--loading')
     $('#delivery_price_error').text('')
+
+    $('#pricing-rules-debug li')
+      .removeClass('list-group-item-success')
+      .removeClass('list-group-item-danger')
+
+    const uris = $('#pricing-rules-debug li').map(function() {
+      return {
+        pricingRule: $(this).data('pricing-rule'),
+        payload,
+        element: $(this),
+      }
+    }).toArray()
+
+    console.log(uris);
+
+    workMyCollection(uris)
+      .then(() => {
+        console.log('finished')
+      })
+
+
+
+    // $('#pricing-rules-debug li').each(function() {
+
+    //   $(this).find('.fa-spinner').removeClass('hidden')
+
+    //   const uri = $(this).data('pricing-rule')
+
+
+
+    //   axios({
+    //     method: 'post',
+    //     url: `${baseURL}${uri}/evaluate`,
+    //     data: payload,
+    //     headers: {
+    //       Authorization: `Bearer ${jwt}`
+    //     }
+    //   })
+    //     .then(response => {
+    //       $(this).find('.fa-spinner').addClass('hidden')
+    //       if (response.data.result === true) {
+    //         $(this).addClass('list-group-item-success')
+    //       } else {
+    //         $(this).addClass('list-group-item-danger')
+    //       }
+    //     })
+    // })
 
     axios({
       method: 'post',
