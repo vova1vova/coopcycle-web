@@ -2,12 +2,33 @@
 
 namespace AppBundle\Entity\Delivery;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+use AppBundle\Action\PricingRule\Evaluate as EvaluateController;
+use AppBundle\Api\Dto\PricingInput;
+use AppBundle\Api\Dto\YesNoOutput;
 use AppBundle\Entity\Delivery;
 use AppBundle\Entity\Task;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * @ApiResource(
+ *   collectionOperations={},
+ *   itemOperations={
+ *     "get"={"method"="GET"},
+ *     "evaluate"={
+ *       "method"="POST",
+ *       "status"=200,
+ *       "path"="/pricing_rules/{id}/evaluate",
+ *       "controller"=EvaluateController::class,
+ *       "input"=PricingInput::class,
+ *       "output"=YesNoOutput::class,
+ *       "write"=false
+ *     }
+ *   }
+ * )
+ */
 class PricingRule
 {
     /**

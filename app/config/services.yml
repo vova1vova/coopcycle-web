@@ -666,5 +666,5 @@ services:
       $mailer: '@AppBundle\Utils\MessageLoggingMailer'
 
   AppBundle\Api\DataTransformer\PricingInputDataTransformer: ~
-
   AppBundle\Api\DataTransformer\PricingOutputDataTransformer: ~
+  AppBundle\Api\DataTransformer\PricingRuleEvaluateInputDataTransformer: ~
