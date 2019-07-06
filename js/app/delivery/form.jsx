@@ -117,6 +117,7 @@ function refreshAddressForm(type, address) {
 const baseURL = location.protocol + '//' + location.hostname
 
 // @see https://gist.github.com/anvk/5602ec398e4fdc521e2bf9940fd90f84
+
 function asyncFunc(item) {
   return new Promise((resolve, reject) => {
 
@@ -142,20 +143,14 @@ function asyncFunc(item) {
   })
 }
 
-function workMyCollection(arr) {
-  return arr.reduce((promise, item) => {
+function workMyCollection(items) {
+  return items.reduce((promise, current) => {
     return promise
-      .then((result) => {
-        console.log(`result`, result)
-        console.log(`item`, item)
-        return asyncFunc(item).then(data => {
-          // console.log('result', result)
-          if (data.result === true) {
-            console.log('STOP HERE')
-            // Promise.reject('YOP')
-          }
-          return data
-        });
+      .then((previous) => {
+        if (previous && previous.result === true) {
+          return Promise.resolve(previous)
+        }
+        return asyncFunc(current)
       })
       .catch(console.error)
   }, Promise.resolve())
@@ -218,7 +213,7 @@ function onFormChanged() {
       }
     }).toArray()
 
-    console.log(uris);
+    console.log(uris)
 
     workMyCollection(uris)
       .then(() => {
