@@ -220,34 +220,6 @@ function onFormChanged() {
         console.log('finished')
       })
 
-
-
-    // $('#pricing-rules-debug li').each(function() {
-
-    //   $(this).find('.fa-spinner').removeClass('hidden')
-
-    //   const uri = $(this).data('pricing-rule')
-
-
-
-    //   axios({
-    //     method: 'post',
-    //     url: `${baseURL}${uri}/evaluate`,
-    //     data: payload,
-    //     headers: {
-    //       Authorization: `Bearer ${jwt}`
-    //     }
-    //   })
-    //     .then(response => {
-    //       $(this).find('.fa-spinner').addClass('hidden')
-    //       if (response.data.result === true) {
-    //         $(this).addClass('list-group-item-success')
-    //       } else {
-    //         $(this).addClass('list-group-item-danger')
-    //       }
-    //     })
-    // })
-
     axios({
       method: 'post',
       url: baseURL + '/api/pricing/deliveries',
