@@ -1419,6 +1419,9 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
     {
         $session = $this->getSession();
 
+        $cardHolderName = $session->getPage()->find('css', '#checkout_payment_cardholderName');
+        $cardHolderName->setValue('John Doe');
+
         $iframe = $session->getPage()->waitFor(30, function($page) {
 
             return $page->find('css', '.StripeElement iframe');
