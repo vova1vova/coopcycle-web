@@ -20,6 +20,7 @@ use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -113,10 +114,84 @@ class OrderController extends AbstractController
     }
 
     /**
+     * @Route("/confirm-payment", name="order_confirm_payment", methods={"POST"})
+     */
+    public function confirmPaymentAction(Request $request,
+        CartContextInterface $cartContext,
+        OrderManager $orderManager,
+        TranslatorInterface $translator)
+    {
+        $order = $cartContext->getCart();
+
+        if (null === $order || null === $order->getRestaurant()) {
+
+            // TODO Validate order status
+            // TODO Throw 400 error
+        }
+
+        $content = $request->getContent();
+        if (!empty($content)) {
+            $data = json_decode($content, true);
+        }
+
+        if (!isset($data['payment_method_id'])) {
+            return new JsonResponse(['error' =>
+                ['message' => 'No payment_method_id key found in request']
+            ], 400);
+        }
+
+        // @see https://stripe.com/docs/payments/payment-intents/quickstart#creating-with-manual-confirmation
+
+        $stripePayment = $order->getLastPayment(PaymentInterface::STATE_CART);
+
+        $orderManager->createPaymentIntent($order, $data['payment_method_id']);
+
+        $this->objectManager->flush();
+
+        if (PaymentInterface::STATE_FAILED === $stripePayment->getState()) {
+
+            return new JsonResponse(['error' =>
+                ['message' => $stripePayment->getLastError()]
+            ], 400);
+        }
+
+        // TODO Check if failed payment
+
+        $response = [];
+
+        if ($stripePayment->requiresUseStripeSDK()) {
+
+            $response = [
+                'requires_action' => true,
+                'payment_intent_client_secret' => $stripePayment->getPaymentIntentClientSecret()
+            ];
+
+        } else if ($stripePayment->requiresCapture()) {
+            // # The payment didn’t need any additional actions and completed!
+            // # Handle post-payment fulfillment
+            $response = [
+                'requires_action' => false,
+                'payment_intent' => $stripePayment->getPaymentIntent()
+            ];
+
+        } else {
+            return new JsonResponse(['error' =>
+                ['message' => 'Invalid PaymentIntent status']
+            ], 400);
+        }
+
+        return new JsonResponse($response);
+    }
+
+    /**
      * @Route("/payment", name="order_payment")
      * @Template()
      */
-    public function paymentAction(Request $request, OrderManager $orderManager, CartContextInterface $cartContext, StripeManager $stripeManager)
+    public function paymentAction(Request $request,
+        OrderManager $orderManager,
+        CartContextInterface $cartContext,
+        StripeManager $stripeManager,
+        OrderProcessorInterface $orderProcessor)
     {
         $order = $cartContext->getCart();
 
@@ -125,11 +200,16 @@ class OrderController extends AbstractController
             return $this->redirectToRoute('homepage');
         }
 
+        $stripePayment = $order->getLastPayment(PaymentInterface::STATE_CART);
+
+        // if (null === $stripePayment) {
+        //     $orderProcessor->process($order);
+        //     $this->objectManager->flush();
+        // }
+
         // Make sure to call StripeManager::configurePayment()
         // It will resolve the Stripe account that will be used
-        $stripeManager->configurePayment(
-            $order->getLastPayment(PaymentInterface::STATE_CART)
-        );
+        $stripeManager->configurePayment($stripePayment);
 
         $form = $this->createForm(CheckoutPaymentType::class, $order);
 
@@ -140,6 +220,7 @@ class OrderController extends AbstractController
 
         $parameters =  [
             'order' => $order,
+            'payment' => $stripePayment,
             'deliveryAddress' => $order->getShippingAddress(),
             'restaurant' => $order->getRestaurant(),
             'asap' => $timeInfo['asap'],
