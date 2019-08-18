@@ -223,6 +223,8 @@ class Restaurant extends FoodEstablishment
 
     private $nextOpeningDateCache = [];
 
+    private $reusablePackagings;
+
     public function __construct()
     {
         $this->servesCuisine = new ArrayCollection();
@@ -234,6 +236,7 @@ class Restaurant extends FoodEstablishment
         $this->orders = new ArrayCollection();
         $this->stripeAccounts = new ArrayCollection();
         $this->preparationTimeRules = new ArrayCollection();
+        $this->reusablePackagings = new ArrayCollection();
     }
 
     /**
@@ -833,6 +836,26 @@ class Restaurant extends FoodEstablishment
     public function setDepositRefundEnabled($depositRefundEnabled)
     {
         $this->depositRefundEnabled = $depositRefundEnabled;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getReusablePackagings()
+    {
+        return $this->reusablePackagings;
+    }
+
+    /**
+     * @param mixed $depositRefundEnabled
+     *
+     * @return self
+     */
+    public function setReusablePackagings($reusablePackagings)
+    {
+        $this->reusablePackagings = $reusablePackagings;
 
         return $this;
     }

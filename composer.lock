@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e11dacd10584ff7f0b9c2e1e1f6b073d",
+    "content-hash": "9d84d58119772c89b54083c8eb9ae6dc",
     "packages": [
         {
             "name": "api-platform/core",
@@ -10429,6 +10429,142 @@
                 "money"
             ],
             "time": "2019-04-19T07:45:15+00:00"
+        },
+        {
+            "name": "sylius/inventory",
+            "version": "v1.5.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Sylius/Inventory.git",
+                "reference": "bd5adfc1239239ca55a78730a3c2168aa45eff1c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Sylius/Inventory/zipball/bd5adfc1239239ca55a78730a3c2168aa45eff1c",
+                "reference": "bd5adfc1239239ca55a78730a3c2168aa45eff1c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "sylius/resource": "^1.2",
+                "webmozart/assert": "^1.0"
+            },
+            "require-dev": {
+                "phpspec/phpspec": "^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.5-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Sylius\\Component\\Inventory\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Paweł Jędrzejewski",
+                    "homepage": "http://pjedrzejewski.com"
+                },
+                {
+                    "name": "Sylius project",
+                    "homepage": "http://sylius.com"
+                },
+                {
+                    "name": "Community contributions",
+                    "homepage": "http://github.com/Sylius/Sylius/contributors"
+                }
+            ],
+            "description": "Flexible inventory management for PHP applications.",
+            "homepage": "http://sylius.com",
+            "keywords": [
+                "ecommerce",
+                "inventory",
+                "shop",
+                "stock",
+                "sylius"
+            ],
+            "time": "2019-02-08T13:20:09+00:00"
+        },
+        {
+            "name": "sylius/inventory-bundle",
+            "version": "v1.5.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Sylius/SyliusInventoryBundle.git",
+                "reference": "c2575b51b8a1bcc5cf49537eefa00c1c968a973d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Sylius/SyliusInventoryBundle/zipball/c2575b51b8a1bcc5cf49537eefa00c1c968a973d",
+                "reference": "c2575b51b8a1bcc5cf49537eefa00c1c968a973d",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "sylius/inventory": "^1.2",
+                "sylius/resource-bundle": "^1.2",
+                "symfony/framework-bundle": "^3.4|^4.1.1",
+                "symfony/templating": "^3.4|^4.1.1",
+                "symfony/validator": "^3.4|^4.1.1"
+            },
+            "conflict": {
+                "twig/twig": "^1.0"
+            },
+            "require-dev": {
+                "doctrine/orm": "^2.5",
+                "phpspec/phpspec": "^5.0",
+                "phpunit/phpunit": "^7.0",
+                "polishsymfonycommunity/symfony-mocker-container": "^1.0",
+                "symfony/browser-kit": "^3.4|^4.1.1",
+                "symfony/dependency-injection": "^3.4|^4.1.1",
+                "twig/twig": "^2.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.5-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Sylius\\Bundle\\InventoryBundle\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Paweł Jędrzejewski",
+                    "homepage": "http://pjedrzejewski.com"
+                },
+                {
+                    "name": "Sylius project",
+                    "homepage": "http://sylius.com"
+                },
+                {
+                    "name": "Community contributions",
+                    "homepage": "http://github.com/Sylius/Sylius/contributors"
+                }
+            ],
+            "description": "Flexible inventory management for Symfony applications.",
+            "homepage": "http://sylius.com",
+            "keywords": [
+                "ecommerce",
+                "inventory",
+                "shop",
+                "stock",
+                "sylius"
+            ],
+            "time": "2019-02-11T15:28:39+00:00"
         },
         {
             "name": "sylius/locale",
