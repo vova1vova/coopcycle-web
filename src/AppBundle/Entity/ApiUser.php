@@ -91,6 +91,8 @@ class ApiUser extends BaseUser implements JWTUserInterface, ChannelAwareInterfac
 
     protected $facebookAccessToken;
 
+    protected $reusablePackagingUnits;
+
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
@@ -98,6 +100,7 @@ class ApiUser extends BaseUser implements JWTUserInterface, ChannelAwareInterfac
         $this->stores = new ArrayCollection();
         $this->stripeAccounts = new ArrayCollection();
         $this->remotePushTokens = new ArrayCollection();
+        $this->reusablePackagingUnits = new ArrayCollection();
 
         parent::__construct();
     }
@@ -285,5 +288,26 @@ class ApiUser extends BaseUser implements JWTUserInterface, ChannelAwareInterfac
         }
 
         return $user;
+    }
+
+    public function getReusablePackagingUnits()
+    {
+        return $this->reusablePackagingUnits;
+    }
+
+    public function setReusablePackagingUnits($reusablePackagingUnits)
+    {
+        $this->reusablePackagingUnits = $reusablePackagingUnits;
+
+        return $this;
+    }
+
+    public function addReusablePackagingUnit($reusablePackagingUnit)
+    {
+        $reusablePackagingUnit->setUser($this);
+
+        $this->reusablePackagingUnits->add($reusablePackagingUnit);
+
+        return $this;
     }
 }
