@@ -79,7 +79,6 @@ class ProfileController extends Controller
                 throw $this->createAccessDeniedException();
             }
 
-
             $store = $request->attributes->get('_store');
 
             $query = $this->getDoctrine()
@@ -113,7 +112,6 @@ class ProfileController extends Controller
 
             //     throw $this->createAccessDeniedException();
             // }
-
 
             $restaurant = $request->attributes->get('_restaurant');
 
