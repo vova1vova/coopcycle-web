@@ -1,0 +1,12 @@
+{% extends "@App/profile.html.twig" %}
+
+{% block content %}
+{% include "@App/_partials/order/list.html.twig" with { routes: {
+  order: 'profile_restaurant_dashboard',
+  restaurant: 'profile_restaurant',
+  order_invoice: 'profile_order_invoice'
+} } %}
+<nav class="text-center">
+  {{ knp_pagination_render(orders) }}
+</nav>
+{% endblock %}

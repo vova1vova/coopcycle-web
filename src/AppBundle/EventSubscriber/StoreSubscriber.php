@@ -42,12 +42,12 @@ class StoreSubscriber implements EventSubscriberInterface
             return; // e.g. anonymous authentication
         }
 
-        if (!$user->hasRole('ROLE_STORE')) {
+        if (!$user->hasRole('ROLE_STORE') && !$user->hasRole('ROLE_RESTAURANT')) {
 
             return;
         }
 
-        if (0 === count($user->getStores())) {
+        if (0 === count($user->getStores()) && 0 === count($user->getRestaurants())) {
 
             return;
         }
@@ -57,20 +57,43 @@ class StoreSubscriber implements EventSubscriberInterface
         //     return;
         // }
 
-        $stores = $user->getStores();
 
-        if (!$request->getSession()->has('_store')) {
-            $store = $stores->first();
-            $request->getSession()->set('_store', $store->getId());
-        }
+        if ($user->hasRole('ROLE_STORE')) {
 
-        foreach ($stores as $store) {
-            if ($store->getId() === $request->getSession()->get('_store')) {
-                break;
+            $stores = $user->getStores();
+
+            if (!$request->getSession()->has('_store')) {
+                $store = $stores->first();
+                $request->getSession()->set('_store', $store->getId());
             }
+
+            foreach ($stores as $store) {
+                if ($store->getId() === $request->getSession()->get('_store')) {
+                    break;
+                }
+            }
+
+            $request->attributes->set('_store', $store);
         }
 
-        $request->attributes->set('_store', $store);
+
+        if ($user->hasRole('ROLE_RESTAURANT')) {
+
+            $restaurants = $user->getRestaurants();
+
+            if (!$request->getSession()->has('_restaurant')) {
+                $restaurant = $restaurants->first();
+                $request->getSession()->set('_restaurant', $restaurant->getId());
+            }
+
+            foreach ($restaurants as $restaurant) {
+                if ($restaurant->getId() === $request->getSession()->get('_restaurant')) {
+                    break;
+                }
+            }
+
+            $request->attributes->set('_restaurant', $restaurant);
+        }
     }
 
     public static function getSubscribedEvents()

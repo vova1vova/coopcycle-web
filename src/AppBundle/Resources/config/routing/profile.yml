@@ -73,7 +73,6 @@ profile_restaurant_stats:
     defaults:
         _controller: AppBundle\Controller\ProfileController::statsAction
         layout: '@App/profile.html.twig'
-        template: '@App/restaurant/stats.html.twig'
         routes:
             restaurants: profile_restaurants
             restaurant: profile_restaurant

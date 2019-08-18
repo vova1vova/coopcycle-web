@@ -22,6 +22,7 @@ use AppBundle\Service\SocketIoManager;
 use AppBundle\Service\OrderManager;
 use AppBundle\Service\TaskManager;
 use AppBundle\Utils\OrderEventCollection;
+use Cocur\Slugify\SlugifyInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sylius\Component\Order\Model\OrderInterface;
@@ -60,7 +61,7 @@ class ProfileController extends Controller
         ];
     }
 
-    public function indexAction(Request $request)
+    public function indexAction(Request $request, SlugifyInterface $slugify)
     {
         $user = $this->getUser();
 
@@ -97,6 +98,26 @@ class ProfileController extends Controller
                 'deliveries' => $deliveries,
                 'routes' => $this->getDeliveryRoutes(),
             ));
+        }
+
+        if ($user->hasRole('ROLE_RESTAURANT') && $request->attributes->has('_restaurant')) {
+
+            // if ($request->query->has('store')) {
+            //     foreach ($user->getStores() as $userStore) {
+            //         if ($userStore->getId() === $request->query->getInt('store')) {
+            //             $request->getSession()->set('_store', $request->query->getInt('store'));
+
+            //             return $this->redirectToRoute('fos_user_profile_show');
+            //         }
+            //     }
+
+            //     throw $this->createAccessDeniedException();
+            // }
+
+
+            $restaurant = $request->attributes->get('_restaurant');
+
+            return $this->statsAction($restaurant->getId(), $request, $slugify);
         }
 
         return $this->render('@App/profile/index.html.twig', array(
