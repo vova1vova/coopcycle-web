@@ -11,6 +11,7 @@ use AppBundle\Controller\Utils\StoreTrait;
 use AppBundle\Controller\Utils\UserTrait;
 use AppBundle\Entity\Address;
 use AppBundle\Entity\ApiUser;
+use AppBundle\Entity\Delivery;
 use AppBundle\Entity\Task;
 use AppBundle\Entity\TaskList;
 use AppBundle\Form\AddressType;
@@ -57,6 +58,50 @@ class ProfileController extends Controller
             'stripe_oauth_redirect' => 'profile_restaurant_stripe_oauth_redirect',
             'stats' => 'profile_restaurant_stats'
         ];
+    }
+
+    public function indexAction(Request $request)
+    {
+        $user = $this->getUser();
+
+        if ($user->hasRole('ROLE_STORE') && $request->attributes->has('_store')) {
+
+            if ($request->query->has('store')) {
+                foreach ($user->getStores() as $userStore) {
+                    if ($userStore->getId() === $request->query->getInt('store')) {
+                        $request->getSession()->set('_store', $request->query->getInt('store'));
+
+                        return $this->redirectToRoute('fos_user_profile_show');
+                    }
+                }
+
+                throw $this->createAccessDeniedException();
+            }
+
+
+            $store = $request->attributes->get('_store');
+
+            $query = $this->getDoctrine()
+                ->getRepository(Delivery::class)
+                ->createFindByStoreQuery($store);
+
+            $deliveries = $this->get('knp_paginator')->paginate(
+                $query,
+                $request->query->getInt('page', 1),
+                6
+            );
+
+            return $this->render('@App/profile/index_store.html.twig', array(
+                'user' => $user,
+                'store' => $store,
+                'deliveries' => $deliveries,
+                'routes' => $this->getDeliveryRoutes(),
+            ));
+        }
+
+        return $this->render('@App/profile/index.html.twig', array(
+            'user' => $user,
+        ));
     }
 
     /**
