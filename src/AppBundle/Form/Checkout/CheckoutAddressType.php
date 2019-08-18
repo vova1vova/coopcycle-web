@@ -8,6 +8,7 @@ use Misd\PhoneNumberBundle\Form\Type\PhoneNumberType;
 use Sylius\Bundle\PromotionBundle\Form\Type\PromotionCouponToCodeType;
 use Sylius\Bundle\PromotionBundle\Validator\Constraints\PromotionSubjectCoupon;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TimeType;
@@ -18,14 +19,16 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Sylius\Component\Inventory\Checker\AvailabilityCheckerInterface;
 use Misd\PhoneNumberBundle\Validator\Constraints\PhoneNumber as AssertPhoneNumber;
 
 class CheckoutAddressType extends AbstractType
 {
     private $country;
 
-    public function __construct($country)
+    public function __construct(AvailabilityCheckerInterface $availabilityChecker, $country)
     {
+        $this->availabilityChecker = $availabilityChecker;
         $this->country = strtoupper($country);
     }
 
@@ -73,11 +76,45 @@ class CheckoutAddressType extends AbstractType
                 ]);
             }
 
-            if ($order->isEligibleToReusablePackaging()) {
-                $form->add('reusablePackagingEnabled', CheckboxType::class, [
-                    'required' => false,
-                    'label' => 'form.checkout_address.reusable_packaging_enabled.label',
-                ]);
+            $restaurant = $order->getRestaurant();
+
+            if ($restaurant->getDepositRefundEnabled()) {
+                foreach ($restaurant->getReusablePackagings() as $reusablePackaging) {
+                    if (!$this->availabilityChecker->isStockSufficient($reusablePackaging, $order->countReusablePackagingUnits())) {
+                        continue;
+                    }
+
+                    if ($order->isEligibleToReusablePackaging()) {
+                        $form->add('reusablePackagingEnabled', CheckboxType::class, [
+                            'required' => false,
+                            'label' => 'form.checkout_address.reusable_packaging_enabled.label',
+                        ]);
+                    }
+                    if ($order->getCustomer()->hasReusablePackagingUnitsForOrder($order)) {
+
+                        // The customer can't give back more items
+                        $maxGiveBackUnits = min(
+                            $order->countReusablePackagingUnits(),
+                            $order->getCustomer()->countReusablePackagingUnitsForOrder($order)
+                        );
+
+                        $giveBackUnits = $order->getGiveBackUnits();
+                        if ($giveBackUnits > $maxGiveBackUnits || $giveBackUnits === 0 && $maxGiveBackUnits > 0) {
+                            $giveBackUnits = $maxGiveBackUnits;
+                        }
+
+                        $form->add('giveBackUnits', IntegerType::class, [
+                            'required' => false,
+                            'label' => 'form.checkout_address.give_back_units.label',
+                            'data' => $giveBackUnits,
+                            // TODO Add constraint
+                            'attr' => [
+                                'min' => 1,
+                                'max' => $maxGiveBackUnits
+                            ]
+                        ]);
+                    }
+                }
             }
         });
 

@@ -688,3 +688,5 @@ services:
 
   AppBundle\Twig\CoopCycleExtension:
     $secret: '%secret%'
+
+  AppBundle\ReusablePackaging\InventoryOperator: ~

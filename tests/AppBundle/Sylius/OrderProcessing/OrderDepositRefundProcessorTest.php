@@ -2,6 +2,7 @@
 
 namespace Tests\AppBundle\Sylius\OrderProcessing;
 
+use AppBundle\Entity\ApiUser;
 use AppBundle\Entity\Contract;
 use AppBundle\Entity\Restaurant;
 use AppBundle\Entity\Sylius\Order;
@@ -124,7 +125,15 @@ class OrderDepositRefundProcessorTest extends TestCase
         $restaurant = new Restaurant();
         $restaurant->setDepositRefundEnabled(true);
 
+        $customer = $this->prophesize(ApiUser::class);
+        $customer
+            ->hasReusablePackagingUnitsForOrder(Argument::type(OrderInterface::class))
+            ->willReturn(false);
+
         $order = $this->prophesize(Order::class);
+        $order
+            ->getCustomer()
+            ->willReturn($customer->reveal());
         $order
             ->isReusablePackagingEnabled()
             ->willReturn(true);
@@ -133,6 +142,9 @@ class OrderDepositRefundProcessorTest extends TestCase
             ->willReturn($restaurant);
         $order
             ->removeAdjustmentsRecursively(AdjustmentInterface::REUSABLE_PACKAGING_ADJUSTMENT)
+            ->shouldBeCalled();
+        $order
+            ->removeAdjustmentsRecursively(AdjustmentInterface::GIVE_BACK_ADJUSTMENT)
             ->shouldBeCalled();
 
         $adjustment = $this->prophesize(AdjustmentInterface::class)->reveal();
