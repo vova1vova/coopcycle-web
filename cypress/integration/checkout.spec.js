@@ -36,7 +36,7 @@ context('Checkout', () => {
     cy.get('#CHEESEBURGER-options input[name="options[HAMBURGER_DRINK]"]')
         .check('HAMBURGER_DRINK_COLA')
 
-    cy.get('#CHEESEBURGER-options button[type="submit"]').click({ timeout: 5000 })
+    cy.get('#CHEESEBURGER-options button[type="submit"]').click({ timeout: 5000, force: true })
 
     cy.wait('@postProduct')
 
