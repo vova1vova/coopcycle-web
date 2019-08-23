@@ -2,16 +2,12 @@
 
 namespace AppBundle\Form;
 
-use AppBundle\Entity\ApiUser;
 use AppBundle\Entity\Task;
 use AppBundle\Service\TagManager;
 use AppBundle\Service\TaskManager;
-use Doctrine\ORM\EntityRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -51,9 +47,6 @@ class TaskType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => '2', 'placeholder' => 'form.task.comments.placeholder']
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'basics.save'
-            ])
             ->add('doneAfter', DateType::class, [
                 'widget' => 'single_text',
                 'format' => 'yyyy-MM-dd HH:mm:ss',
@@ -72,53 +65,6 @@ class TaskType extends AbstractType
                 'label' => 'Tags'
             ]);
         }
-
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
-
-            $form = $event->getForm();
-            $task = $event->getData();
-
-            // We are editing an existing task
-            if ($task && null !== $task->getId()) {
-
-                // Only non-assigned tasks can be deleted
-                if (!$task->isAssigned()) {
-                    $form->add('delete', SubmitType::class);
-                }
-
-                // Only existing tasks can be assigned
-                $assignOptions = array(
-                    'mapped' => false,
-                    'label' => 'form.task.courier.label',
-                    'required' => false,
-                    'class' => ApiUser::class,
-                    'query_builder' => function (EntityRepository $entityRepository) {
-                        return $entityRepository->createQueryBuilder('u')
-                            ->where('u.roles LIKE :roles')
-                            ->setParameter('roles', '%ROLE_COURIER%')
-                            ->orderBy('u.username', 'ASC');
-                    },
-                    'choice_label' => 'username',
-                );
-
-                if ($task->isAssigned()) {
-                    $assignOptions['data'] = $task->getAssignedCourier();
-                }
-                if ($task->isCompleted()) {
-                    $assignOptions['disabled'] = true;
-                }
-
-                $form->add('assign', EntityType::class, $assignOptions);
-
-                // We disallow un-doing a task as it will break things here and there
-                if (!$task->isCompleted()) {
-                    $form->add('complete', TaskCompleteType::class, [
-                        'data' => $task,
-                        'mapped' => false,
-                    ]);
-                }
-            }
-        });
 
         if ($builder->has('tagsAsString')) {
             $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
