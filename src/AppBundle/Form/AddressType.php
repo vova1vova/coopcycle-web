@@ -70,9 +70,6 @@ class AddressType extends AbstractType
             ])
             ->add('longitude', HiddenType::class, [
                 'mapped' => false,
-            ])
-            ->add('id', HiddenType::class, [
-                'mapped' => false,
             ]);
 
         if (true === $options['extended']) {
@@ -121,16 +118,6 @@ class AddressType extends AbstractType
         $latLngListener = function (FormEvent $event) use ($constraints) {
             $form = $event->getForm();
             $address = $event->getData();
-
-            $id = $form->get('id')->getData();
-
-            if (!empty($id)) {
-                $existingAddress = $this->doctrine->getRepository(Address::class)->find($id);
-                if ($existingAddress) {
-                    $event->setData($existingAddress);
-                    return;
-                }
-            }
 
             $streetAddress = $form->get('streetAddress')->getData();
             if (!empty($streetAddress)) {

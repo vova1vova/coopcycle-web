@@ -36,7 +36,9 @@ col-sm-9
 
 {% block task_widget %}
 
-  {{ form_row(form.address.streetAddress, { label: false }) }}
+  {{ form_widget(form.address, { label: false }) }}
+
+  {# {{ form_row(form.address.streetAddress, { label: false }) }} #}
 
   {% if form.doneBefore is defined %}
     {{ form_row(form.doneBefore, { label: 'form.delivery.' ~ form.vars.name ~ '.doneBefore.label' }) }}
@@ -46,24 +48,23 @@ col-sm-9
     {{ form_row(form.timeSlot) }}
   {% endif %}
 
-  {{ form_row(form.address.postalCode) }}
+  {# {{ form_row(form.address.postalCode) }}
   {{ form_row(form.address.addressLocality) }}
-
+ #}
   {{ form_row(form.comments) }}
 
   <hr>
 
-  {{ form_row(form.address.name) }}
-  {{ form_row(form.address.telephone) }}
+  {# {{ form_row(form.address.name) }}
+  {{ form_row(form.address.telephone) }} #}
   {% if form.tagsAsString is defined %}
     {{ form_row(form.tagsAsString) }}
   {% endif %}
 
   {# The fields below are hidden #}
 
-  {{ form_widget(form.address.latitude) }}
-  {{ form_widget(form.address.longitude) }}
-  {{ form_widget(form.address.id) }}
+  {# {{ form_widget(form.address.latitude) }}
+  {{ form_widget(form.address.longitude) }} #}
   {{ form_widget(form.type) }}
 
   {% if form.doneAfter is defined %}
@@ -128,10 +129,10 @@ col-sm-9
   {{ block('hidden_widget') }}
 {% endblock %}
 
-{% block _delivery_pickup_address_streetAddress_row %}
+{# {% block _delivery_pickup_address_streetAddress_row %}
   {% set icon = 'cube' %}
   {{ block('task_address_streetAddress_row') }}
-{% endblock %}
+{% endblock %} #}
 
 {% block _delivery_pickup_doneAfter_widget %}
   {{ block('hidden_widget') }}
@@ -161,10 +162,10 @@ col-sm-9
   {{ block('hidden_widget') }}
 {% endblock %}
 
-{% block _delivery_dropoff_address_streetAddress_row %}
+{# {% block _delivery_dropoff_address_streetAddress_row %}
   {% set icon = 'flag' %}
   {{ block('task_address_streetAddress_row') }}
-{% endblock %}
+{% endblock %} #}
 
 {% block _delivery_dropoff_doneAfter_widget %}
   {{ block('hidden_widget') }}

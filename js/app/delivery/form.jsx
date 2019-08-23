@@ -75,30 +75,30 @@ function markAddressChecked(addressType) {
 
 window.initMap = function() {
 
-  const originAddressLatitude  = document.querySelector('#delivery_pickup_address_latitude')
-  const originAddressLongitude = document.querySelector('#delivery_pickup_address_longitude')
+  // const originAddressLatitude  = document.querySelector('#delivery_pickup_address_latitude')
+  // const originAddressLongitude = document.querySelector('#delivery_pickup_address_longitude')
 
-  const deliveryAddressLatitude  = document.querySelector('#delivery_dropoff_address_latitude')
-  const deliveryAddressLongitude = document.querySelector('#delivery_dropoff_address_longitude')
+  // const deliveryAddressLatitude  = document.querySelector('#delivery_dropoff_address_latitude')
+  // const deliveryAddressLongitude = document.querySelector('#delivery_dropoff_address_longitude')
 
-  const hasOriginAddress = originAddressLatitude.value && originAddressLongitude.value
-  const hasDeliveryAddress = deliveryAddressLongitude.value && deliveryAddressLatitude.value
+  // const hasOriginAddress = originAddressLatitude.value && originAddressLongitude.value
+  // const hasDeliveryAddress = deliveryAddressLongitude.value && deliveryAddressLatitude.value
 
-  if (hasOriginAddress) {
-    markAddressChecked('pickup')
-    createMarker({
-      latitude: originAddressLatitude.value,
-      longitude: originAddressLongitude.value
-    }, 'pickup')
-  }
+  // if (hasOriginAddress) {
+  //   markAddressChecked('pickup')
+  //   createMarker({
+  //     latitude: originAddressLatitude.value,
+  //     longitude: originAddressLongitude.value
+  //   }, 'pickup')
+  // }
 
-  if (hasDeliveryAddress) {
-    markAddressChecked('dropoff')
-    createMarker({
-      latitude: deliveryAddressLatitude.value,
-      longitude: deliveryAddressLongitude.value
-    }, 'dropoff')
-  }
+  // if (hasDeliveryAddress) {
+  //   markAddressChecked('dropoff')
+  //   createMarker({
+  //     latitude: deliveryAddressLatitude.value,
+  //     longitude: deliveryAddressLongitude.value
+  //   }, 'dropoff')
+  // }
 
   form = new DeliveryForm('delivery', {
     onChange: function(delivery) {

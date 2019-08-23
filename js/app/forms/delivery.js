@@ -178,22 +178,22 @@ export default function(name, options) {
 
   if (el) {
 
-    createAddressWidget(
-      name,
-      'pickup',
-      (type, address) => onChange(serializeForm(name))
-    )
+    // createAddressWidget(
+    //   name,
+    //   'pickup',
+    //   (type, address) => onChange(serializeForm(name))
+    // )
     createDatePickerWidget(
       name,
       'pickup',
       (type, date) => onChange(serializeForm(name))
     )
 
-    createAddressWidget(
-      name,
-      'dropoff',
-      (type, address) => onChange(serializeForm(name))
-    )
+    // createAddressWidget(
+    //   name,
+    //   'dropoff',
+    //   (type, address) => onChange(serializeForm(name))
+    // )
     createDatePickerWidget(
       name,
       'dropoff',

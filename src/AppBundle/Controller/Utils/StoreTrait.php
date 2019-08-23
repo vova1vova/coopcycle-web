@@ -252,6 +252,13 @@ trait StoreTrait
 
             } else {
 
+                // echo '<pre>';
+                // var_dump($delivery->getPickup()->getAddress()->getId());
+                // var_dump($delivery->getPickup()->getAddress()->getStreetAddress());
+                // var_dump($delivery->getDropoff()->getAddress()->getId());
+                // var_dump($delivery->getDropoff()->getAddress()->getStreetAddress());
+                // exit;
+
                 $this->getDoctrine()
                     ->getManagerForClass(Delivery::class)
                     ->persist($delivery);

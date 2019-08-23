@@ -52,22 +52,23 @@ class DeliveryType extends AbstractType
                 'required' => false,
                 'label' => 'form.delivery.weight.label'
             ])
-            ->add('pickup', TaskType::class, [
-                'mapped' => false,
-                'label' => 'form.delivery.pickup.label',
-                'constraints' => [
-                    new Assert\Valid()
-                ],
-                'with_tags' => $options['with_tags']
-            ])
-            ->add('dropoff', TaskType::class, [
-                'mapped' => false,
-                'label' => 'form.delivery.dropoff.label',
-                'constraints' => [
-                    new Assert\Valid()
-                ],
-                'with_tags' => $options['with_tags']
-            ])
+            // ->add('pickup', TaskType::class, [
+            //     'mapped' => false,
+            //     'label' => 'form.delivery.pickup.label',
+            //     'constraints' => [
+            //         new Assert\Valid()
+            //     ],
+            //     'with_tags' => $options['with_tags']
+            // ])
+            // ->add('dropoff', TaskType::class, [
+            //     'mapped' => false,
+            //     'label' => 'form.delivery.dropoff.label',
+            //     'constraints' => [
+            //         new Assert\Valid()
+            //     ],
+            //     'with_tags' => $options['with_tags']
+            // ])
+            // ;
             ;
 
         if (true === $options['with_vehicle']) {
@@ -81,45 +82,51 @@ class DeliveryType extends AbstractType
             ]);
         }
 
-        $builder->get('pickup')->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) {
-                $delivery = $event->getForm()->getParent()->getData();
-                foreach ($delivery->getTasks() as $task) {
-                    if ($task->getType() === Task::TYPE_PICKUP) {
+        // $builder->get('pickup')->addEventListener(
+        //     FormEvents::PRE_SET_DATA,
+        //     function (FormEvent $event) {
+        //         $delivery = $event->getForm()->getParent()->getData();
+        //         foreach ($delivery->getTasks() as $task) {
+        //             if ($task->getType() === Task::TYPE_PICKUP) {
 
-                        if (null === $delivery->getId()) {
-                            $before = new \DateTime();
-                            while (($before->format('i') % 15) !== 0) {
-                                $before->modify('+1 minute');
-                            }
-                            $task->setDoneBefore($before);
-                        }
+        //                 if (null === $delivery->getId()) {
+        //                     $before = new \DateTime();
+        //                     while (($before->format('i') % 15) !== 0) {
+        //                         $before->modify('+1 minute');
+        //                     }
+        //                     $task->setDoneBefore($before);
+        //                 }
 
-                        $event->setData($task);
-                    }
-                }
-            }
-        );
+        //                 $event->setData($task);
+        //             }
+        //         }
 
-        $builder->get('dropoff')->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) {
-                $delivery = $event->getForm()->getParent()->getData();
-                foreach ($delivery->getTasks() as $task) {
-                    if ($task->getType() === Task::TYPE_DROPOFF) {
+        //         $store = $delivery->getStore();
 
-                        if (null === $delivery->getId()) {
-                            $before = clone $delivery->getPickup()->getDoneBefore();
-                            $before->modify('+1 hour');
-                            $task->setDoneBefore($before);
-                        }
+        //         if (null !== $store) {
+        //             var_dump('PICKUP = ' . $store->getId());
+        //         }
+        //     }
+        // );
 
-                        $event->setData($task);
-                    }
-                }
-            }
-        );
+        // $builder->get('dropoff')->addEventListener(
+        //     FormEvents::PRE_SET_DATA,
+        //     function (FormEvent $event) {
+        //         $delivery = $event->getForm()->getParent()->getData();
+        //         foreach ($delivery->getTasks() as $task) {
+        //             if ($task->getType() === Task::TYPE_DROPOFF) {
+
+        //                 if (null === $delivery->getId()) {
+        //                     $before = clone $delivery->getPickup()->getDoneBefore();
+        //                     $before->modify('+1 hour');
+        //                     $task->setDoneBefore($before);
+        //                 }
+
+        //                 $event->setData($task);
+        //             }
+        //         }
+        //     }
+        // );
 
         if ($options['with_store']) {
             $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
@@ -143,76 +150,98 @@ class DeliveryType extends AbstractType
             });
         }
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
+        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($options) {
 
             $form = $event->getForm();
             $delivery = $event->getData();
 
             $store = $delivery->getStore();
 
-            if (null === $store) {
-                return;
-            }
+            // var_dump($store->getId());
 
-            if (null !== $store->getTimeSlot()) {
+            $form->add('pickup', TaskType::class, [
+                'mapped' => false,
+                'label' => 'form.delivery.pickup.label',
+                'constraints' => [
+                    new Assert\Valid()
+                ],
+                'data' => $delivery->getPickup(),
+                'with_tags' => $options['with_tags'],
+                'store' => $store
+            ]);
+            $form->add('dropoff', TaskType::class, [
+                'mapped' => false,
+                'label' => 'form.delivery.dropoff.label',
+                'constraints' => [
+                    new Assert\Valid()
+                ],
+                'data' => $delivery->getDropoff(),
+                'with_tags' => $options['with_tags'],
+                'store' => $store
+            ]);
 
-                $timeSlot = $store->getTimeSlot();
-                $choicesWithDates = $timeSlot->getChoicesWithDates($this->country);
+            if (null !== $store) {
 
-                $timeSlotOptions = [
-                    'choices' => $choicesWithDates,
-                    'choice_label' => [ $this, 'getTimeSlotChoiceLabel' ],
-                    'choice_value' => function (TimeSlotChoiceWithDate $choiceWithDate = null) {
-                        if (!$choiceWithDate) {
-                            return '';
-                        }
+                if (null !== $store->getTimeSlot()) {
 
-                        return sprintf('%s %s-%s',
-                            $choiceWithDate->getDate()->format('Y-m-d'),
-                            $choiceWithDate->getChoice()->getStartTime(),
-                            $choiceWithDate->getChoice()->getEndTime()
-                        );
-                    },
-                    'label' => 'form.delivery.time_slot.label',
-                    'mapped' => false
-                ];
+                    $timeSlot = $store->getTimeSlot();
+                    $choicesWithDates = $timeSlot->getChoicesWithDates($this->country);
 
-                $form->get('pickup')->remove('doneAfter');
-                $form->get('pickup')->remove('doneBefore');
-                $form->get('pickup')->add('timeSlot', ChoiceType::class, $timeSlotOptions);
+                    $timeSlotOptions = [
+                        'choices' => $choicesWithDates,
+                        'choice_label' => [ $this, 'getTimeSlotChoiceLabel' ],
+                        'choice_value' => function (TimeSlotChoiceWithDate $choiceWithDate = null) {
+                            if (!$choiceWithDate) {
+                                return '';
+                            }
 
-                $form->get('dropoff')->remove('doneAfter');
-                $form->get('dropoff')->remove('doneBefore');
-                $form->get('dropoff')->add('timeSlot', ChoiceType::class, $timeSlotOptions);
-            }
+                            return sprintf('%s %s-%s',
+                                $choiceWithDate->getDate()->format('Y-m-d'),
+                                $choiceWithDate->getChoice()->getStartTime(),
+                                $choiceWithDate->getChoice()->getEndTime()
+                            );
+                        },
+                        'label' => 'form.delivery.time_slot.label',
+                        'mapped' => false
+                    ];
 
-            if (null !== $store->getPackageSet()) {
+                    $form->get('pickup')->remove('doneAfter');
+                    $form->get('pickup')->remove('doneBefore');
+                    $form->get('pickup')->add('timeSlot', ChoiceType::class, $timeSlotOptions);
 
-                $packageSet = $store->getPackageSet();
-
-                $data = [];
-
-                if ($delivery->hasPackages()) {
-                    foreach ($delivery->getPackages() as $deliveryPackage) {
-                        $pwq = new PackageWithQuantity($deliveryPackage->getPackage());
-                        $pwq->setQuantity($deliveryPackage->getQuantity());
-                        $data[] = $pwq;
-                    }
+                    $form->get('dropoff')->remove('doneAfter');
+                    $form->get('dropoff')->remove('doneBefore');
+                    $form->get('dropoff')->add('timeSlot', ChoiceType::class, $timeSlotOptions);
                 }
 
-                $form->add('packages', CollectionType::class, [
-                    'entry_type' => PackageWithQuantityType::class,
-                    'entry_options' => [
-                        'label' => false,
-                        'package_set' => $packageSet
-                    ],
-                    'label' => 'form.delivery.packages.label',
-                    'mapped' => false,
-                    'allow_add' => true,
-                    'allow_delete' => true,
-                ]);
+                if (null !== $store->getPackageSet()) {
 
-                $form->get('packages')->setData($data);
+                    $packageSet = $store->getPackageSet();
+
+                    $data = [];
+
+                    if ($delivery->hasPackages()) {
+                        foreach ($delivery->getPackages() as $deliveryPackage) {
+                            $pwq = new PackageWithQuantity($deliveryPackage->getPackage());
+                            $pwq->setQuantity($deliveryPackage->getQuantity());
+                            $data[] = $pwq;
+                        }
+                    }
+
+                    $form->add('packages', CollectionType::class, [
+                        'entry_type' => PackageWithQuantityType::class,
+                        'entry_options' => [
+                            'label' => false,
+                            'package_set' => $packageSet
+                        ],
+                        'label' => 'form.delivery.packages.label',
+                        'mapped' => false,
+                        'allow_add' => true,
+                        'allow_delete' => true,
+                    ]);
+
+                    $form->get('packages')->setData($data);
+                }
             }
         });
 

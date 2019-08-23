@@ -38,9 +38,10 @@ class TaskType extends AbstractType
                 'multiple' => false,
                 'disabled' => !$options['can_edit_type']
             ])
-            ->add('address', AddressType::class, [
-                'with_telephone' => true,
-                'with_name' => true
+            ->add('address', AddressBookType::class, [
+                // 'with_telephone' => true,
+                // 'with_name' => true,
+                'store' => $options['store']
             ])
             ->add('comments', TextareaType::class, [
                 'label' => 'form.task.comments.label',
@@ -109,6 +110,7 @@ class TaskType extends AbstractType
             'data_class' => Task::class,
             'can_edit_type' => true,
             'with_tags' => true,
+            'store' => null
         ));
     }
 }
