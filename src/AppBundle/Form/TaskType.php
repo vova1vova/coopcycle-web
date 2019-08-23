@@ -4,7 +4,6 @@ namespace AppBundle\Form;
 
 use AppBundle\Entity\ApiUser;
 use AppBundle\Entity\Task;
-use AppBundle\Form\Type\DateRangeType;
 use AppBundle\Service\TagManager;
 use AppBundle\Service\TaskManager;
 use Doctrine\ORM\EntityRepository;
@@ -54,27 +53,17 @@ class TaskType extends AbstractType
             ])
             ->add('save', SubmitType::class, [
                 'label' => 'basics.save'
+            ])
+            ->add('doneAfter', DateType::class, [
+                'widget' => 'single_text',
+                'format' => 'yyyy-MM-dd HH:mm:ss',
+                'required' => false
+            ])
+            ->add('doneBefore', DateType::class, [
+                'widget' => 'single_text',
+                'format' => 'yyyy-MM-dd HH:mm:ss',
+                'required' => true
             ]);
-
-        if ($options['date_range']) {
-            $builder
-                ->add('dateRange', DateRangeType::class, [
-                    'mapped' => false,
-                    'label' => 'task.form.dateRange'
-                ]);
-        } else {
-            $builder
-                ->add('doneAfter', DateType::class, [
-                    'widget' => 'single_text',
-                    'format' => 'yyyy-MM-dd HH:mm:ss',
-                    'required' => false
-                ])
-                ->add('doneBefore', DateType::class, [
-                    'widget' => 'single_text',
-                    'format' => 'yyyy-MM-dd HH:mm:ss',
-                    'required' => true
-                ]);
-        }
 
         if ($options['with_tags']) {
             $builder->add('tagsAsString', TextType::class, [
@@ -142,10 +131,6 @@ class TaskType extends AbstractType
                 }, iterator_to_array($task->getTags()));
 
                 $form->get('tagsAsString')->setData(implode(' ', $tags));
-                if ($form->has('dateRange')) {
-                    $form->get('dateRange')->get('after')->setData($task->getDoneAfter());
-                    $form->get('dateRange')->get('before')->setData($task->getDoneBefore());
-                }
             });
 
             $builder->get('tagsAsString')->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
@@ -157,17 +142,6 @@ class TaskType extends AbstractType
                 $tags = $this->tagManager->fromSlugs($slugs);
 
                 $task->setTags($tags);
-            });
-        }
-
-        if ($builder->has('dateRange')) {
-            $builder->get('dateRange')->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
-
-                $data = $event->getData();
-                $task = $event->getForm()->getParent()->getData();
-
-                $task->setDoneAfter(new \DateTime($data['after']));
-                $task->setDoneBefore(new \DateTime($data['before']));
             });
         }
 
@@ -188,7 +162,6 @@ class TaskType extends AbstractType
         $resolver->setDefaults(array(
             'data_class' => Task::class,
             'can_edit_type' => true,
-            'date_range' => false,
             'with_tags' => true,
         ));
     }
