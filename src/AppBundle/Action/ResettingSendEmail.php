@@ -5,6 +5,7 @@ namespace AppBundle\Action;
 use FOS\UserBundle\Mailer\MailerInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use FOS\UserBundle\Util\TokenGeneratorInterface;
+use M6Web\Bundle\StatsdBundle\Statsd\StatsdEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,12 +47,16 @@ class ResettingSendEmail
      */
     public function sendEmailAction(Request $request)
     {
+        $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.send_email.requested');
+
         $username = $request->request->get('username');
 
         // @see FOS\UserBundle\Controller\ResettingController
         $user = $this->userManager->findUserByUsernameOrEmail($username);
 
         if (!$user) {
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.send_email.user_does_not_exist');
+
             // for security reasons don't disclose to the client that the user does not exist
             return new JsonResponse(null, Response::HTTP_ACCEPTED);
         }
@@ -64,6 +69,10 @@ class ResettingSendEmail
             $this->mailer->sendResettingEmailMessage($user);
             $user->setPasswordRequestedAt(new \DateTime());
             $this->userManager->updateUser($user);
+
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.send_email.done');
+        } else {
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.send_email.request_not_expired');
         }
 
         return new JsonResponse(null, Response::HTTP_ACCEPTED);

@@ -9,6 +9,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Lexik\Bundle\JWTAuthenticationBundle\Response\JWTAuthenticationSuccessResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use M6Web\Bundle\StatsdBundle\Statsd\StatsdEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -58,12 +59,16 @@ class ResettingReset
      */
     public function resetAction($token, Request $request)
     {
+        $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.set_password.requested');
+
         $password = $request->request->get('password');
 
         // @see FOS\UserBundle\Controller\ResettingController
         $user = $this->userManager->findUserByConfirmationToken($token);
 
         if (null === $user) {
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.set_password.token_not_found');
+
             throw new AccessDeniedException();
         }
 
@@ -72,6 +77,7 @@ class ResettingReset
             $data = [
                 'message' => 'token expired',
             ];
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.set_password.token_expired');
             return new JsonResponse($data, Response::HTTP_BAD_REQUEST);
         }
 
@@ -94,6 +100,7 @@ class ResettingReset
                     $violations->add($cause);
                 }
             }
+            $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.set_password.password_not_valid');
             throw new ValidationException($violations);
         }
 
@@ -115,6 +122,8 @@ class ResettingReset
 
         $this->dispatcher->dispatch($event, Events::AUTHENTICATION_SUCCESS);
         $response->setData($event->getData());
+
+        $this->dispatcher->dispatch(new StatsdEvent(), 'user.resetting.set_password.done');
 
         return $response;
     }

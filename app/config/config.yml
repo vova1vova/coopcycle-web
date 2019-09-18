@@ -331,9 +331,45 @@ m6_statsd:
         default:
             address: 'udp://%statsd_host%'
             port: "%statsd_port%"
+    console_events: true
+    base_collectors: true
     clients:
         default:
             servers: ["default"]
+            events:
+              statsd.memory_usage:
+                gauge: "website.memory"
+              statsd.time:
+                timing: "website.time"
+              statsd.exception:
+                increment: "website.exception.<value>"
+
+              # symfony build-in events https://symfony.com/doc/current/reference/events.html
+              kernel.terminate: # this event is a symfony basic, you just have to listen to it to have the number of page view
+                increment: website.response.<response.statusCode>
+
+              lexik_jwt_authentication.on_authentication_success:
+                increment : user.on_authentication_success
+
+              user.resetting.send_email.requested:
+                increment : user.resetting.send_email.requested
+              user.resetting.send_email.done:
+                increment: user.resetting.send_email.done
+              user.resetting.send_email.user_does_not_exist:
+                increment: user.resetting.send_email.user_does_not_exist
+              user.resetting.send_email.request_not_expired:
+                increment: user.resetting.send_email.request_not_expired
+
+              user.resetting.set_password.requested:
+                increment: user.resetting.set_password.requested
+              user.resetting.set_password.done:
+                increment: user.resetting.set_password.done
+              user.resetting.set_password.token_not_found:
+                increment: user.resetting.set_password.token_not_found
+              user.resetting.set_password.token_expired:
+                increment: user.resetting.set_password.token_expired
+              user.resetting.set_password.password_not_valid:
+                increment: user.resetting.set_password.password_not_valid
 
 knp_paginator:
     template:
